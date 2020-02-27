@@ -1,5 +1,8 @@
 package net.sf.dawnstrider.odsconnector;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -9,6 +12,7 @@ import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.asam.ods.AoSession;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.serviceloader.ServiceListFactoryBean;
 import org.springframework.boot.Banner.Mode;
@@ -26,11 +30,9 @@ public class OdsConnectorApplication implements CommandLineRunner {
 	private static final String OPTION_NSP = "NameServicePort";
 	private static final String OPTION_NSH = "NameServiceHost";
 
-	@Autowired
-	ApplicationContext ctx;
+	private ApplicationContext ctx;
 
-	@Autowired
-	ConsoleWrapper console;
+	private ConsoleWrapper console;
 
 	@Autowired
 	ServiceListFactoryBean svcFactory;
@@ -41,8 +43,15 @@ public class OdsConnectorApplication implements CommandLineRunner {
 		app.run(args);
 	}
 
+	public OdsConnectorApplication(@Autowired ApplicationContext ctx, @Autowired ConsoleWrapper console) {
+		this.ctx = ctx;
+		this.console = console;
+	}
+
 	@Override
 	public void run(String... args) throws Exception {
+
+		printTopic();
 
 		Options opts = getOptions();
 
@@ -120,7 +129,48 @@ public class OdsConnectorApplication implements CommandLineRunner {
 
 	}
 
-	private void runAction(Integer selection, HashMap<Integer, ODSAction> actionMap, AoSession session) throws ExecutionException {
+	private void printTopic() {
+		try (InputStream in = getClass().getClassLoader().getResourceAsStream("git.properties")) {
+
+			ByteArrayOutputStream bos = new ByteArrayOutputStream();
+			int b = in.read();
+			while (b >= 0) {
+				bos.write(b);
+				b = in.read();
+			}
+
+			console.printLine("ODS Connector Utiliy");
+
+			JSONObject json = new JSONObject(bos.toString());
+
+			console.printLine("Version: " + json.getString("git.build.version"));
+			console.printLine("Git ID: " + json.getString("git.commit.id"));
+
+			boolean dev;
+			if (json.getString("git.tags").compareTo("") == 0) {
+				dev = true;
+			} else {
+				dev = false;
+			}
+			if (dev) {
+				console.printLine("!!!!!!!!!!!Development Version!!!!!!!!!!");
+				console.printLine("!!!!!!!!!!!Development Version!!!!!!!!!!");
+				console.printLine("!!!!!!!!!!!Development Version!!!!!!!!!!");
+				console.printLine("UNCOMMITTED CHANGES: " + json.getString("git.dirty"));
+			}
+
+			console.printLine("----------");
+			console.printLine("");
+
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+	}
+
+	private void runAction(Integer selection, HashMap<Integer, ODSAction> actionMap, AoSession session)
+			throws ExecutionException {
 
 		ODSAction action = actionMap.get(selection);
 		if (action != null) {
