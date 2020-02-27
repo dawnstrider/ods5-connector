@@ -11,7 +11,7 @@
 	</parent>
 	<groupId>net.sf.dawnstrider</groupId>
 	<artifactId>ods-connector</artifactId>
-	<version>0.0.1</version>
+	<version>0.0.1-SNAPSHOT</version>
 	<name>ods-connector</name>
 
 	<properties>
@@ -112,4 +112,8 @@
 	</build>
 
 	<description>Utility to connect to ASAM ODS Servers using CORBA as communications protocol.</description>
+	<scm>
+		<url>scm:git:https://github.com/dawnstrider/ods5-connector.git</url>
+		<developerConnection>scm:git:https://github.com/dawnstrider/ods5-connector.git</developerConnection>
+	</scm>
 </project>
