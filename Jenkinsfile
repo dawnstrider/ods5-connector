@@ -4,11 +4,6 @@ pipeline {
         maven 'M3'
     }
     stages {
-        stage('Initialize') {
-           steps {
-               
-           }
-        }
         stage('Build') {
            steps {
                sh 'mvn clean compile package'
