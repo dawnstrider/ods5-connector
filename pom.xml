@@ -19,7 +19,7 @@
 	<repositories>
 		<repository>
 			<id>nexus</id>
-			<url>http://ladon:8081/nexus/content/groups/public/</url>
+			<url>https://nexus.highqsoft.eu/</url>
 			<releases>
 				<enabled>true</enabled>
 			</releases>
