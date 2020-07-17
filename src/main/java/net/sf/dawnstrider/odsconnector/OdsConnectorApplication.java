@@ -17,10 +17,9 @@ import org.asam.ods.AoSession;
 import org.json.JSONObject;
 import org.omg.CORBA.COMM_FAILURE;
 import org.omg.CORBA.ORBPackage.InvalidName;
-import org.omg.CosNaming.NamingContextPackage.NotFound;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.serviceloader.ServiceListFactoryBean;
-import org.springframework.boot.Banner.Mode;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -34,6 +33,8 @@ public class OdsConnectorApplication implements CommandLineRunner {
 
 	private static final String OPTION_NSP = "NameServicePort";
 	private static final String OPTION_NSH = "NameServiceHost";
+	
+	private static final org.slf4j.Logger logger = LoggerFactory.getLogger("ODSConnector");
 
 	private ApplicationContext ctx;
 
@@ -44,7 +45,7 @@ public class OdsConnectorApplication implements CommandLineRunner {
 
 	public static void main(String[] args) {
 		SpringApplication app = new SpringApplication(OdsConnectorApplication.class);
-		app.setBannerMode(Mode.OFF);
+//		app.setBannerMode(Mode.OFF);
 		app.run(args);
 	}
 
@@ -85,19 +86,22 @@ public class OdsConnectorApplication implements CommandLineRunner {
 			try {
 				services = c.listServices();
 			} catch (UnknownHostException e) {
-				System.err.println("Could not resolve host '"+host+"' to an IP address. Either the connection to that server does not work or the hostname is wrong.");
+				logger.error("Could not resolve host '"+host+"' to an IP address. Either the connection to that server does not work or the hostname is wrong.");
 				System.exit(-1);
 			} catch (InvalidName e) {
-				System.err.println("The CORBA NameService could not be found at the given location. Please re-try with the correct NameServiceHost and NameServicePort.");
+				logger.error("The CORBA NameService could not be found at the given location. Please re-try with the correct NameServiceHost and NameServicePort.");
 				System.exit(-1);
 			} catch (IOException e) {
-				System.err.println("The server '' could not be pinged successfully. We cannot make sure it is running. This may be due to a firewall restriction.");
-				System.err.println("This does not mean the connection will fail, it might however be an indicator that the server machine is offline.");
-				System.err.println("Error message:");
-				System.err.println("---------------");
+				logger.error("The server '' could not be pinged successfully. We cannot make sure it is running. This may be due to a firewall restriction.");
+				logger.error("This does not mean the connection will fail, it might however be an indicator that the server machine is offline.");
+				logger.error("Error message:");
+				logger.error("---------------");
 				e.printStackTrace();
-				System.err.println("---------------");
-				System.err.println("Will continue to connect..");
+				logger.error("---------------");
+				logger.error("Will continue to connect..");
+			} catch (COMM_FAILURE e) {
+				logger.error("Communication error with CORBA NameService at host '"+host+"' and port '"+port+"'. Make sure it is running and not blocked by a firewall.");
+				System.exit(-1);
 			}
 
 			
@@ -119,15 +123,13 @@ public class OdsConnectorApplication implements CommandLineRunner {
 			try {
 				session = c.connect(services[server], user, pw);
 			} catch (AoException e) {
-				System.err.println("Connection to ODS server established. ODS Server returned an error.");
-				System.err.println(e.reason);
-				System.err.println("Error Stack:");
+				logger.error("Connection to ODS server established. ODS Server returned an error.");
+				logger.error(e.reason);
+				logger.error("Error Stack:");
 				e.printStackTrace();
 				System.exit(-1);
 			} catch (COMM_FAILURE e) {
-				System.err.println("ODS server name found in CORBA NameService but it points to an unreachable Avalon. Most likely the ODS server is down.");
-				System.err.println("Error Stack:");
-				e.printStackTrace();
+				logger.error("ODS server name found in CORBA NameService but it points to an unreachable Avalon. Most likely the ODS server is down.");
 				System.exit(-1);
 			}
 
@@ -151,7 +153,7 @@ public class OdsConnectorApplication implements CommandLineRunner {
 					try {
 						runAction(selection, actionMap, session);
 					} catch (ExecutionException e) {
-						System.err.println("Could not execute the action, check the logs for details");
+						logger.error("Could not execute the action, check the logs for details");
 						throw e;
 					}
 
