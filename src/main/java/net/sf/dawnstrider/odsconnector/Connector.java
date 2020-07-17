@@ -1,5 +1,8 @@
 package net.sf.dawnstrider.odsconnector;
 
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
@@ -29,18 +32,23 @@ public class Connector {
 	private Integer port;
 	private String host;
 	private ORB orb;
+	private ConsoleWrapper console;
 
-	public Connector(String host, Integer port, Boolean isSSL) {
+	public Connector(String host, Integer port, Boolean isSSL, ConsoleWrapper console) {
 		this.host = host;
 		this.port = port;
 		this.isSSL = isSSL;
+		this.console = console;
 	}
 
-	public String[] listServices() throws InvalidName {
+	public String[] listServices() throws InvalidName, UnknownHostException, IOException {
 
 		ORB orb = getORB();
 		Object nsObj = orb.resolve_initial_references("NameService");
 		NamingContextExt ns = NamingContextExtHelper.narrow(nsObj);
+		console.printLine("Connected to NameService");
+		console.printLine("Scanning for entries..");
+
 		BindingIteratorHolder bi = new BindingIteratorHolder();
 		BindingListHolder bl = new BindingListHolder();
 		ns.list(1000, bl, bi);
@@ -50,9 +58,7 @@ public class Connector {
 
 		for (int i = 0; i < values.length; i++) {
 			if (values[i].binding_type.value() == BindingType._nobject) {
-				if (values[i].binding_name[values[i].binding_name.length - 1].kind.compareTo("ASAM-ODS") == 0) {
-					ret.add(values[i].binding_name);
-				}
+				ret.add(values[i].binding_name);
 			}
 		}
 
@@ -68,24 +74,19 @@ public class Connector {
 
 	}
 
-	public AoSession connect(String service, String user, String password) throws ExecutionException {
+	public AoSession connect(String service, String user, String password) throws UnknownHostException, IOException, InvalidName, NotFound, CannotProceed, org.omg.CosNaming.NamingContextPackage.InvalidName, AoException {
 		ORB orb = getORB();
-		try {
-			Object nsObj = orb.resolve_initial_references("NameService");
-			NamingContextExt ns = NamingContextExtHelper.narrow(nsObj);
-			Object obj = ns.resolve_str(service);
-			AoFactory aoFac = AoFactoryHelper.narrow(obj);
-			return aoFac.newSession("USER=" + user + ",PASSWORD=" + password);
-		} catch (InvalidName | NotFound | CannotProceed | org.omg.CosNaming.NamingContextPackage.InvalidName e) {
-			throw new ExecutionException(e);
-		} catch (AoException e) {
-			throw new ExecutionException(e.reason, e);
-		}
+		Object nsObj = orb.resolve_initial_references("NameService");
+		NamingContextExt ns = NamingContextExtHelper.narrow(nsObj);
+		Object obj = ns.resolve_str(service);
+		AoFactory aoFac = AoFactoryHelper.narrow(obj);
+		return aoFac.newSession("USER=" + user + ",PASSWORD=" + password);
 
 	}
 
-	private ORB getORB() {
+	private ORB getORB() throws UnknownHostException, IOException {
 		if (orb == null) {
+			InetAddress.getByName(host).isReachable(1_000);
 			String[] args = new String[2];
 			args[0] = "-ORBInitRef";
 			args[1] = "NameService=corbaloc:iiop:1.2@" + host + ":" + port + "/NameService";
