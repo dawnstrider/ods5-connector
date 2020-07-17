@@ -4,7 +4,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetAddress;
-import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.HashMap;
@@ -184,7 +183,7 @@ public class OdsConnectorApplication implements CommandLineRunner {
 	private void validatePort(String host, Integer port) throws UnknownHostException, IOException {
 		Socket s = new Socket(host, port);
 		logger.info("Testing connection to NameService port..");
-		InputStream in = s.getInputStream();
+		s.getInputStream();
 		logger.info("Test successfull");
 		s.close();
 
@@ -197,6 +196,8 @@ public class OdsConnectorApplication implements CommandLineRunner {
 		if (ret)
 			logger.info("Server machine is known and reachable..");
 		return ret;
+		
+		
 	}
 
 	private void printTopic() {
