@@ -1,12 +1,8 @@
 package net.sf.dawnstrider.odsconnector;
 
-import java.io.IOException;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
-import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 import org.asam.ods.AoException;
@@ -41,7 +37,7 @@ public class Connector {
 		this.console = console;
 	}
 
-	public String[] listServices() throws InvalidName, UnknownHostException, IOException {
+	public String[] listServices() throws InvalidName  {
 
 		ORB orb = getORB();
 		Object nsObj = orb.resolve_initial_references("NameService");
@@ -74,7 +70,7 @@ public class Connector {
 
 	}
 
-	public AoSession connect(String service, String user, String password) throws UnknownHostException, IOException, InvalidName, NotFound, CannotProceed, org.omg.CosNaming.NamingContextPackage.InvalidName, AoException {
+	public AoSession connect(String service, String user, String password) throws InvalidName, NotFound, CannotProceed, org.omg.CosNaming.NamingContextPackage.InvalidName, AoException {
 		ORB orb = getORB();
 		Object nsObj = orb.resolve_initial_references("NameService");
 		NamingContextExt ns = NamingContextExtHelper.narrow(nsObj);
@@ -84,9 +80,8 @@ public class Connector {
 
 	}
 
-	private ORB getORB() throws UnknownHostException, IOException {
+	private ORB getORB() {
 		if (orb == null) {
-			InetAddress.getByName(host).isReachable(1_000);
 			String[] args = new String[2];
 			args[0] = "-ORBInitRef";
 			args[1] = "NameService=corbaloc:iiop:1.2@" + host + ":" + port + "/NameService";
