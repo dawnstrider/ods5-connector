@@ -1,3 +1,4 @@
 net.sf.dawnstrider.odsconnector.actions.PrintIORAction
 net.sf.dawnstrider.odsconnector.actions.TopLevelElementsAction
 net.sf.dawnstrider.odsconnector.actions.PrintSessionContextAction
+net.sf.dawnstrider.odsconnector.actions.SetSessionContextVariable

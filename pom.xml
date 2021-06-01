@@ -21,7 +21,7 @@
 	<repositories>
 		<repository>
 			<id>nexus</id>
-			<url>https://nexus.highqsoft.eu/</url>
+			<url>https://nexus.highqsoft.eu/nexus/content/groups/public/</url>
 			<releases>
 				<enabled>true</enabled>
 			</releases>
